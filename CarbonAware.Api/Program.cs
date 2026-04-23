@@ -1,6 +1,8 @@
 using CarbonAware.Api.Middleware;
 using CarbonAware.Api.Services;
 using Scalar.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using CarbonAware.Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,6 +20,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Connect to SQLite. "Data Source" is the name of the file it will create.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite("Data Source=carbon.db"));
 
 var app = builder.Build();
 
