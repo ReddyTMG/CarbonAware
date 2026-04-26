@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // // This tells the app: "Whenever a class asks for ICarbonService, give it CarbonService"
 // builder.Services.AddScoped<ICarbonService, CarbonService>();
 
+builder.Services.AddTransient<ExceptionHandlingMiddleware>();
+
 // 1. Register the Middleware in the DI container
 builder.Services.AddTransient<CarbonAwareMiddleware>();
 
@@ -34,6 +36,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseMiddleware<CarbonAwareMiddleware>();
 

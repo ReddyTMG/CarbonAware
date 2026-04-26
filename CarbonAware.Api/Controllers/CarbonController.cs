@@ -22,6 +22,7 @@ public class CarbonController : ControllerBase
     [HttpGet("status")]
     public async Task<IActionResult> GetStatus()
     {
+        // throw new Exception("Simulated API Crash!"); // Temporarily add this to test the ExceptionHandlingMiddleware
         var intensity = await _carbonService.GetCurrentIntensityAsync();
         return Ok(new { 
             Intensity = intensity, 
