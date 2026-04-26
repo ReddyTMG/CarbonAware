@@ -12,6 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // No trailing slash!
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // 1. Register the Middleware in the DI container
 builder.Services.AddTransient<CarbonAwareMiddleware>();
 
@@ -38,6 +48,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseRouting();
+
+app.UseCors();
 
 app.UseMiddleware<CarbonAwareMiddleware>();
 
