@@ -49,7 +49,7 @@ builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter(policyName: "fixed", options =>
     {
-        options.PermitLimit = 3;           // Max 10 requests
+        options.PermitLimit = 10;           // Max 10 requests
         options.Window = TimeSpan.FromSeconds(10); // Per 10 seconds
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         options.QueueLimit = 0;             // Only queue 2 extra requests before rejecting
