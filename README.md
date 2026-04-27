@@ -1,17 +1,25 @@
 # Carbon-Aware "Green" API Monitor
 
-## The Story
+## Background
+
 Cloud computing has a physical footprint. This project addresses the "invisible" carbon cost of software by connecting an ASP.NET Core API to real-time energy grid data. By making carbon intensity visible, we can build systems that prioritize sustainability alongside performance.
 
-## Purpose & Impact
-The goal is to shift computational loads to "Green Windows"—times when renewable energy (wind/solar) is dominant on the grid.
-- **Environmental Impact:** Helps reduce the carbon footprint of automated tasks like data processing, backups, or AI training.
-- **Technical Impact:** Demonstrates professional "Clean Architecture" using Dependency Injection, Middleware, and Background Tasks in .NET.
+---
 
-## How to Use the System
-1. **Check Status:** Hit the `/carbon/status` endpoint to get a "Go/No-Go" signal based on live grid data.
-2. **View History:** Access `/carbon/history` to see trends over time, allowing for better scheduling of heavy tasks.
-3. **Transparent Cost:** Every request to any API endpoint automatically returns an `X-Carbon-Intensity` header, informing the consumer of the current environmental cost.
+## Purpose & Impact
+
+The goal is to shift computational loads to **"Green Windows"** — times when renewable energy (wind/solar) is dominant on the grid.
+
+- **Environmental Impact:** Reduces the carbon footprint of automated tasks like data processing, backups, or AI training.
+- **Technical Impact:** Demonstrates an enterprise-grade stack featuring real-time data streaming, defensive security, and automated background processing.
+
+---
+
+## How the System Works
+
+1. **Automated Monitoring:** A .NET Background Service polls the UK National Grid API every 30 seconds, analyzing and categorizing the current carbon intensity.
+2. **Real-Time Visualization:** Using SignalR (WebSockets), the React frontend updates instantly as new data is collected — no manual refresh required.
+3. **Defensive API Design:** Built-in Rate Limiting protects against API abuse, while Global Error Handling ensures professional JSON responses even during server-side failures.
 
 ---
 
@@ -28,45 +36,59 @@ Before running this project, ensure you have the following installed:
 
 ---
 
+## Tech Stack
+
+### Backend (.NET 10)
+
+- **SignalR:** Real-time bi-directional communication between server and UI.
+- **EF Core + SQLite:** Persistent relational storage for historical trend analysis.
+- **Middleware Pipeline:** Global Exception Handling, CORS Policy Management, and Fixed-Window Rate Limiting.
+- **User Secrets:** Secure configuration management (Zero-Footprint in Git).
+
+### Frontend (React + Vite)
+
+- **Tailwind CSS v4:** Modern, "CSS-first" styling for a high-performance UI.
+- **SignalR Client:** Live data synchronization with built-in duplicate prevention logic.
+- **Responsive Design:** Optimized for both desktop and mobile viewing.
+
+---
+
 ## Getting Started
 
-### 1. Clone the Repository
+### 1. Clone & Setup
+
 ```bash
 git clone <your-repo-url>
 cd CarbonAware
 ```
 
-### 2. Restore Dependencies
-Navigate into the API folder and restore the NuGet packages:
+### 2. Launch the Backend
+
 ```bash
 cd CarbonAware.Api
-dotnet restore
-```
-
-### 3. Setup the Database
-This project uses SQLite for local development. To generate the database file and apply the schema (Migrations), run:
-```bash
+dotnet user-secrets init
+dotnet user-secrets set "CarbonApi:BaseUrl" "https://api.carbonintensity.org.uk/"
 dotnet ef database update
-```
-
-### 4. Run the Application
-Start the server:
-```bash
 dotnet run
 ```
 
-The API will be available at `http://localhost:5258`.
+API available at: `http://localhost:5258`
 
-* **Interactive Documentation:** Explore the endpoints via Scalar UI at `http://localhost:5258/scalar/v1`.
+### 3. Launch the Frontend
+
+```bash
+cd ../CarbonAware.UI
+npm install
+npm run dev
+```
+
+Dashboard available at: `http://localhost:5173`
 
 ---
 
-## Tech Stack & Core Concepts
+## Security & Robustness Features
 
-* **Backend:** ASP.NET Core 10.0 (Web API)
-* **Data Source:** UK National Grid Carbon Intensity API
-* **ORM:** Entity Framework Core (SQLite)
-* **Patterns:**
-  * **Dependency Injection (DI):** Decoupling services from controllers.
-  * **Middleware:** Intercepting requests to log environmental data globally.
-  * **Background Workers:** Using `BackgroundService` to poll data independently of user requests.
+- **CORS Policy:** Strict origin validation to permit only trusted frontend consumers.
+- **Rate Limiting:** Fixed-window policy (e.g., 5 requests per 10s) to prevent DoS attacks and resource exhaustion.
+- **Idempotent UI:** Frontend logic filters incoming SignalR events to prevent duplicate rendering during network race conditions.
+- **X-Carbon Headers:** Every API response includes custom headers (`X-Carbon-Intensity`) to promote developer awareness.
