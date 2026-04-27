@@ -5,6 +5,20 @@
 Cloud computing has a physical footprint. This project addresses the "invisible" carbon cost of software by connecting an ASP.NET Core API to real-time energy grid data. By making carbon intensity visible, we can build systems that prioritize sustainability alongside performance.
 
 ---
+## System Architecture 
+![images](Diagram/CarbonAwareSysArchitecture.png)
+1. **Data Ingestion (The Polling Loop)**: It begins in the top left where The UK National Grid API is the external source. Inside ASP.NET Core Backend, the CarbonMonitoringWorker (which is a BackgroundService) runs on a fixed timer (polling). It fetches the raw JSON data.
+2. **Storage and Analysis (The Brain)**
+The worker analyzes the data (e.g., assigning 'Green', 'Moderate', or 'Poor' ratings).
+    - Persistence: It uses EF Core to save this processed log into the SQLite Database. This builds the historical dataset in the ```/history``` endpoint.
+3. **The Real-Time Pipeline (The Magic)**: Crucially, after the worker saves the data, it pushes the same new log entry into the SignalR Hub. The Hub is a bi-directional "communication pipe" or "radio station."
+4. **Visualization (The UI)**: On the right, the React Frontend (Vite/Tailwind) initializes and establishes a permanent connection (WebSocket tunnel) to the SignalR Hub.
+
+    - When the Hub receives a new broadcast from the background worker, it immediately pushes that data down the WebSocket tunnel to the React UI. React detects the change in state and renders the new card instantly without the user clicking refresh.
+5. **Defensive Middleware (The Security)**: The REST API Endpoints box is wrapped by defensive walls. When the React app makes a standard HTTP fetch request for the /history endpoint, it must pass through:
+    1. Global Error Handling: Catching crashes gracefully.
+    2. CORS Policy Check: Verifying the React port (5173).
+    3. Rate Limiting: Blocking spam requests (429 Too Many Requests).
 
 ## Purpose & Impact
 
