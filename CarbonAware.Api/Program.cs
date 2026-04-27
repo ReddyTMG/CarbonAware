@@ -4,6 +4,9 @@ using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using CarbonAware.Api.Data;
 using CarbonAware.Api.Hubs;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -42,6 +45,24 @@ builder.Services.AddHostedService<CarbonMonitoringWorker>();
 
 builder.Services.AddSignalR();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter(policyName: "fixed", options =>
+    {
+        options.PermitLimit = 3;           // Max 10 requests
+        options.Window = TimeSpan.FromSeconds(10); // Per 10 seconds
+        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = 0;             // Only queue 2 extra requests before rejecting
+    });
+
+    // Custom response when a user is blocked
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsync("Too many requests. Slow down!", token);
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -54,6 +75,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseRouting();
+
+app.UseRateLimiter();
 
 app.UseCors();
 

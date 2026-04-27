@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Mvc; // This fixes ControllerBase, ApiController, and
 using CarbonAware.Api.Services; // This fixes ICarbonService (assuming your service is in this folder)
 using CarbonAware.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 namespace CarbonAware.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[EnableRateLimiting("fixed")]
 public class CarbonController : ControllerBase
 {
     private readonly ICarbonService _carbonService;
