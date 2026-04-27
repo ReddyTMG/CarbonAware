@@ -1,5 +1,7 @@
 using CarbonAware.Api.Data;
 using CarbonAware.Api.Models;
+using Microsoft.AspNetCore.SignalR;
+using CarbonAware.Api.Hubs;
 
 namespace CarbonAware.Api.Services;
 
@@ -8,11 +10,13 @@ public class CarbonMonitoringWorker : BackgroundService
     private readonly ILogger<CarbonMonitoringWorker> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
+    private readonly IHubContext<CarbonHub> _hubContext;
 
-    public CarbonMonitoringWorker(ILogger<CarbonMonitoringWorker> logger, IServiceScopeFactory scopeFactory)
+    public CarbonMonitoringWorker(ILogger<CarbonMonitoringWorker> logger, IServiceScopeFactory scopeFactory, IHubContext<CarbonHub> hubContext)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _hubContext = hubContext;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -44,7 +48,11 @@ public class CarbonMonitoringWorker : BackgroundService
 
                     dbContext.CarbonLogs.Add(log);
                     await dbContext.SaveChangesAsync(stoppingToken);
-                    
+
+                    await _hubContext.Clients.All.SendAsync("ReceiveNewLog", log, stoppingToken);
+
+                    _logger.LogInformation("Broadcasted new log to SignalR clients.");
+
                     _logger.LogInformation("Successfully saved carbon log: {Intensity} gCO2/kWh", intensity);
                 }
             }

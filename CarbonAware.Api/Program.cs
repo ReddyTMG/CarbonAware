@@ -3,6 +3,7 @@ using CarbonAware.Api.Services;
 using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using CarbonAware.Api.Data;
+using CarbonAware.Api.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,7 +19,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173") // No trailing slash!
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -38,6 +40,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddHostedService<CarbonMonitoringWorker>();
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -56,6 +60,8 @@ app.UseCors();
 app.UseMiddleware<CarbonAwareMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.MapHub<CarbonHub>("/carbonHub");
 
 app.UseAuthorization();
 
